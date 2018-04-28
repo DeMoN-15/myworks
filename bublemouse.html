@@ -1,0 +1,123 @@
+<!DOCTYPE>
+<html>
+<title> buble saga</title>
+
+<body>
+    <canvas id="canvas" width="1200" height="400" style="border: 1px solid #002626"></canvas>
+    <script>
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        var context = document.getElementById('canvas').getContext('2d');
+        addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            bangroundcanvas();
+            init();
+
+        });
+        var mouse = {
+            x: undefined,
+            y: undefined
+        }
+        addEventListener('mousemove', Event => {
+            mouse.x = Event.x;
+            mouse.y = Event.y;
+            //console.log(mouse.x, mouse.y);
+
+        });
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function bangroundcanvas() {
+            context.fillStyle = '#000000';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function randomize(min, max) {
+            return Math.random() * (max - min + 1) + min;
+
+        }
+
+        function draw(x, y, radius) {
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.xvelocity = randomize(-0.5, .5);
+            this.yvelocity = randomize(-0.5, .5);
+            this.color = getRandomColor();
+            this.update = () => {
+                if (this.x > canvas.width || this.x < 0) {
+                    this.xvelocity = -this.xvelocity;
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.yvelocity = -this.yvelocity;
+                }
+                if (Math.abs(mouse.x - this.x) < 50 && Math.abs(mouse.y - this.y) < 50) {
+                    if (this.radius < 30)
+                        this.radius += 1;
+                } else {
+                    this.radius = radius;
+                }
+                this.y += this.yvelocity;
+                this.x += this.xvelocity;
+                this.drawballs();
+                this.drlines();
+            }
+            this.drawballs = () => {
+
+                context.beginPath();
+                context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+                context.fillStyle = this.color;
+                context.fill();
+            }
+            this.drlines = () => {
+                for (let i = 0; i < particles.length; i++) {
+                    if (Math.abs(this.x - particles[i].x) < 50 && Math.abs(this.y - particles[i].y) < 50) {
+                        context.beginPath();
+                        context.lineWidth = 0.05;
+                        context.moveTo(this.x, this.y);
+                        context.lineTo(particles[i].x, particles[i].y);
+                        context.closePath();
+                        context.strokeStyle = '#ffffff';
+                        context.stroke();
+                        //context.fillStyle = 'rgba(255,255,255,0.5)';
+                        //context.fill();
+                    }
+                }
+            }
+        }
+        let particles;
+
+        function init() {
+            particles = []
+            for (let i = 0; i < 600; i++) {
+                particles.push(new draw(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 5));
+
+
+            }
+            console.log(particles[0].x)
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            bangroundcanvas();
+            particles.forEach(particles => {
+                particles.update();
+            });
+            //console.log(1);
+        }
+        init();
+        animate();
+
+    </script>
+</body>
+
+</html>

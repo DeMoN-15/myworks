@@ -1,0 +1,143 @@
+<!DOCTYPE>
+<html>
+<title>
+    snake food game
+</title>
+
+<body>
+    <h1>SNAKE GAME</h1>
+    <h6> RENJEESH.N</h6>
+    <canvas id="canvas" width="1200" height="400" style="border: 1px solid #002266"></canvas>
+    <script>
+        var x = document.querySelector('h1');
+        var context = document.getElementById("canvas").getContext('2d');
+        var snakevelocityx = 13;
+        var snakevelocityy = 13;
+        var snakespeed = 200;
+
+        function randomize(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min);
+
+        }
+
+        function snake(x, y) {
+            this.x = x;
+            this.y = y;
+            this.width = 10;
+            this.height = 10;
+            this.yvelocity = 0;
+            this.xvelocity = snakevelocityx;
+            this.snakearray = [];
+            this.count = 1;
+            this.snakearrayfill = () => {
+                for (let i = 0; i < 4; i++) {
+                    this.snakearray.push({
+                        x: this.x - (i * (this.width + 3)),
+                        y: this.y
+                    });
+                }
+                this.fooddfill();
+            }
+            this.eventcalculation = () => {
+                if (eventlist.key == 40 && this.yvelocity != -snakevelocityy) {
+                    this.yvelocity = snakevelocityy;
+                    this.xvelocity = 0;
+                } else if (eventlist.key == 39 && this.xvelocity != -snakevelocityx) {
+                    this.yvelocity = 0;
+                    this.xvelocity = snakevelocityx;
+                } else if (eventlist.key == 37 && this.xvelocity != snakevelocityx) {
+                    this.yvelocity = 0;
+                    this.xvelocity = -snakevelocityx;
+                } else if (eventlist.key == 38 && this.yvelocity != snakevelocityy) {
+                    this.yvelocity = -snakevelocityy;
+                    this.xvelocity = 0;
+                }
+            }
+            this.snakeheadposition = [];
+            this.update = () => {
+                this.eventcalculation();
+                this.snakearray.pop();
+                this.snakex = this.snakearray[0].x;
+                this.snakey = this.snakearray[0].y;
+                this.x += this.xvelocity;
+                this.y += this.yvelocity;
+                let newhead = {
+                    x: this.x,
+                    y: this.y
+                }
+                this.snakearray.unshift(newhead);
+                if (newhead.x < 0 || newhead.x > (1200) || newhead.y < 0 || newhead.y > (390)) {
+                    this.yvelocity = 0;
+                    this.xvelocity = snakevelocityx;
+                    init();
+
+                }
+                if (Math.abs(this.food[0].x - this.snakex) < 10 && Math.abs(this.food[0].y - this.snakey) < 10) {
+                    this.snakearray.push(newhead);
+                    this.count++;
+                    this.fooddfill();
+                }
+                if (this.count > 5 && (this.snakearray.length - 4) > 10) {
+                    snakespeed += 10;
+                    this.count = 0;
+
+                }
+                context.font = '20px Georgia';
+                context.fillText("Score", 1150, 50);
+                context.fillText((this.snakearray.length - 4), 1150, 80);
+                this.snakebody();
+                this.fooddislay();
+
+
+            }
+
+            this.snakebody = () => {
+                context.fillStyle = 'red';
+                for (let i = 0; i < this.snakearray.length; i++) {
+                    context.fillRect(this.snakearray[i].x, this.snakearray[i].y, this.width, this.height);
+                }
+            }
+            this.food = [];
+            this.fooddfill = () => {
+                this.food.pop();
+                this.food.push({
+                    x: randomize(10, 1190),
+                    y: randomize(10, 390)
+                });
+            }
+            this.fooddislay = () => {
+                context.fillStyle = 'green';
+                context.fillRect(this.food[0].x, this.food[0].y, this.width, this.height);
+            }
+
+
+        }
+
+
+        function eventlist() {
+            var key;
+        }
+        addEventListener('keydown', event => {
+            eventlist.key = event.keyCode;
+            //console.log(event.key);
+            //console.log(eventlist.key);
+            eventcalculation();
+        });
+
+        function init() {
+            snake(200, 200);
+            snakearrayfill();
+        }
+        init();
+        setInterval(function() {
+            //context.fillStyle = 'rgba(255,255,255,0.005)';
+            context.clearRect(0, 0, 1200, 400);
+            update();
+            //console.log('updates');
+        }, snakespeed);
+
+    </script>
+
+</body>
+
+</html>

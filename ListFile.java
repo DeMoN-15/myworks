@@ -2,6 +2,7 @@ import java.io.*;
 import java.nio.file.*;
 public class ListFile{
     static File dirpath;
+    static int count;
     public static void main(String a[]){
 	String file=a[0];
 	dirpath=new File(file);
@@ -18,11 +19,13 @@ public class ListFile{
 	   
 	    for(File afile:filearray)
 		{
+		    System.out.print("file no"+count+"\t");
 		    for(int i=0;i<value;i++)
 			{
 			    System.out.print("\t");
 			}
-		    System.out.println(afile.getName()+value);
+		    count++;
+		    System.out.println(afile.getName());
 		    if(afile.isDirectory()){
 			l(afile.listFiles(),value+1,0);
 		    }		   

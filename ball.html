@@ -1,0 +1,222 @@
+<!DOCTYPE>
+<html>
+<title>ball</title>
+
+<body>
+    <canvas id="canvas" style="border: 2px solid #00000"></canvas>
+    <script>
+        /**
+         * Rotates coordinate system for velocities
+         *
+         * Takes velocities and alters them as if the coordinate system they're on was rotated
+         *
+         * @param  Object | velocity | The velocity of an individual particle
+         * @param  Float  | angle    | The angle of collision between two objects in radians
+         * @return Object | The altered x and y velocities after the coordinate system has been rotated
+         */
+
+        function rotate(velocity, angle) {
+            const rotatedVelocities = {
+                x: velocity.x * Math.cos(angle) - velocity.y * Math.sin(angle),
+                y: velocity.x * Math.sin(angle) + velocity.y * Math.cos(angle)
+            };
+
+            return rotatedVelocities;
+        }
+
+        /**
+         * Swaps out two colliding particles' x and y velocities after running through
+         * an elastic collision reaction equation
+         *
+         * @param  Object | particle      | A particle object with x and y coordinates, plus velocity
+         * @param  Object | otherParticle | A particle object with x and y coordinates, plus velocity
+         * @return Null | Does not return a value
+         */
+
+        function resolveCollision(particle, otherParticle) {
+            const xVelocityDiff = particle.velocity.x - otherParticle.velocity.x;
+            const yVelocityDiff = particle.velocity.y - otherParticle.velocity.y;
+
+            const xDist = otherParticle.x - particle.x;
+            const yDist = otherParticle.y - particle.y;
+
+            // Prevent accidental overlap of particles
+            if (xVelocityDiff * xDist + yVelocityDiff * yDist >= 0) {
+
+                // Grab angle between the two colliding particles
+                const angle = -Math.atan2(otherParticle.y - particle.y, otherParticle.x - particle.x);
+
+                // Store mass in var for better readability in collision equation
+                const m1 = particle.mass;
+                const m2 = otherParticle.mass;
+
+                // Velocity before equation
+                const u1 = rotate(particle.velocity, angle);
+                const u2 = rotate(otherParticle.velocity, angle);
+
+                // Velocity after 1d collision equation
+                const v1 = {
+                    x: u1.x * (m1 - m2) / (m1 + m2) + u2.x * 2 * m2 / (m1 + m2),
+                    y: u1.y
+                };
+                const v2 = {
+                    x: u2.x * (m1 - m2) / (m1 + m2) + u1.x * 2 * m2 / (m1 + m2),
+                    y: u2.y
+                };
+
+                // Final velocity after rotating axis back to original location
+                const vFinal1 = rotate(v1, -angle);
+                const vFinal2 = rotate(v2, -angle);
+
+                // Swap particle velocities for realistic bounce effect
+                particle.velocity.x = vFinal1.x;
+                particle.velocity.y = vFinal1.y;
+
+                otherParticle.velocity.x = vFinal2.x;
+                otherParticle.velocity.y = vFinal2.y;
+            }
+        }
+        var context = document.getElementById("canvas").getContext('2d');
+        addEventListener('resize', function() {
+            canvasfun();
+            call();
+
+        });
+        addEventListener('load', function() {
+            canvasfun();
+            call();
+        });
+
+        function canvasfun() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            context.fillStyle = "#ffffff";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        var mouse = ({
+            x: undefined,
+            y: undefined
+        });
+        addEventListener('mousemove', Event => {
+            mouse.x = Event.clientX;
+            mouse.y = Event.clientY;
+            //console.log(mouse.x, mouse.y);
+
+        });
+
+        function randomize(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function draw(x, y, radius) {
+            this.x = x;
+            this.y = y;
+            this.mass = 1;
+            this.velocity = ({
+                x: randomize(-0.5, 0.5),
+                y: randomize(-0.5, 0.5)
+            });
+            this.radius = radius;
+            this.score = 0;
+            this.update = () => {
+                this.x = mouse.x - 5;
+                this.y = mouse.y - 5;
+                this.drwcircle();
+                for (let i = 0; i < particle.length; i++) {
+
+                    if (Math.abs(this.x - particle[i].x) < (this.radius + particle[i].radius) && Math.abs(this.y - particle[i].y) < (this.radius + particle[i].radius)) {
+                        this.radius = particle[i].radius;
+                        if (particle[i].radius < 20) {
+                            particle.splice(i, 1);
+
+                            //particle.pop();
+                            this.score++;
+                        } else {
+                            init();
+                        }
+                        if (this.score == 100) {
+                            init();
+                        }
+
+
+                    }
+                }
+
+                context.font = '20px Georgia';
+                context.fillText("Score", 1130, 50);
+                context.fillText(this.score, 1150, 80);
+                context.fillStyle = "#000000";
+                context.fill();
+                //console.log(mouse.x);
+            }
+            this.updating = () => {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.drwcircle();
+                if (this.x > canvas.width - (this.radius + 10) || this.x < (this.radius + 10)) {
+                    this.velocity.x = -this.velocity.x;
+                }
+                if (this.y > canvas.height - (this.radius + 10) || this.y < (this.radius + 10)) {
+                    this.velocity.y = -this.velocity.y;
+                }
+                for (let i = 0; i < particle.length; i++) {
+                    if (Math.abs(particle[i].x - this.x) < (this.radius + particle[i].radius) && Math.abs(particle[i].y - this.y) < (this.radius + particle[i].radius)) {
+                        resolveCollision(this, particle[i]);
+                        //console.log(particle);
+                    }
+                }
+                //console.log(mouse.x);
+            }
+            this.drwcircle = () => {
+                context.beginPath();
+                context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+                context.closePath();
+                context.strokeStyle = "red";
+                context.stroke();
+            }
+
+        }
+
+        var mouseparticle;
+
+        function init() {
+            mouseparticle = [];
+            mouseparticle.push(new draw(100, 100, 5));
+
+        }
+        let particle;
+
+        function initparticle() {
+            particle = []
+            for (let i = 0; i < 100; i++) {
+                var radiuss = randomize(0, 30);
+                particle.push(new draw(randomize(radiuss + radiuss, canvas.width - (radiuss + 20)), randomize(radiuss + radiuss, canvas.height - (radiuss + 10)), radiuss));
+                //       particle[i].drwcircle();
+            }
+            //            console.log(particle);
+
+
+        }
+
+        function animate() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(animate);
+            // update();
+            particle.forEach(particle => {
+                particle.updating();
+            });
+            mouseparticle[0].update();
+            //console.log("khdfv");
+        }
+
+        function call() {
+            init();
+            initparticle();
+            animate();
+        }
+        call();
+
+    </script>
+</body>
+
+</html>
